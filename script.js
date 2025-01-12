@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
     const cardGrid = document.querySelector('.card-grid');
     const betAmountInput = document.getElementById('bet-amount');
@@ -10,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let deck = [];
     let currentBet = 0;
-    let currentCardIndex = 0;
+    let cardsRemoved = 0;
 
     function initializeDeck() {
         const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
@@ -47,21 +46,42 @@ document.addEventListener('DOMContentLoaded', () => {
         gameStatus.textContent = `You placed a bet of $${currentBet}. Start guessing!`;
     }
 
+    function calculatePayout() {
+        let payoutMultiplier = 0;
+        if (cardsRemoved >= 52) {
+            payoutMultiplier = 5;
+        } else if (cardsRemoved >= 40) {
+            payoutMultiplier = 2;
+        } else if (cardsRemoved >= 35) {
+            payoutMultiplier = 1;
+        } else if (cardsRemoved >= 30) {
+            payoutMultiplier = 0.5;
+        }
+        const payout = currentBet * payoutMultiplier;
+        return payout;
+    }
+
+    function updatePayoutInfo() {
+        const payout = calculatePayout();
+        payoutInfo.textContent = `Payout: $${payout}`;
+    }
+
     function handleGuess(isHigher) {
         if (deck.length <= 9) {
             gameStatus.textContent = 'No more cards to guess. Game over!';
             return;
         }
         const nextCard = deck[9];
-        const currentCard = deck[currentCardIndex];
+        const currentCard = deck[0];
         if ((isHigher && nextCard.value > currentCard.value) || (!isHigher && nextCard.value < currentCard.value)) {
             gameStatus.textContent = 'Correct guess!';
-            deck.splice(currentCardIndex, 1);
+            cardsRemoved++;
         } else {
             gameStatus.textContent = 'Wrong guess. Better luck next time!';
-            deck.splice(0, 1); // Remove the guessed card
         }
+        deck.shift(); // Remove the guessed card from the deck
         renderCards();
+        updatePayoutInfo();
     }
 
     placeBetButton.addEventListener('click', placeBet);
